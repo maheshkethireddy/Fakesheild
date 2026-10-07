@@ -24,10 +24,11 @@ import {
   Server,
   Layers
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export const Scanner: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isScanning, setIsScanning] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,8 +39,12 @@ export const Scanner: React.FC = () => {
     setError(null);
 
     try {
-      const response = await scannerService.analyze(url);
+      const response = await scannerService.analyze(url, user?.id);
       if (response.success && response.data) {
+        if (user && response.data.id) {
+          navigate(`/scan/${response.data.id}`);
+          return;
+        }
         setResult(response.data);
       } else {
         setError(response.message || 'Failed to analyze URL.');

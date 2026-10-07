@@ -24,14 +24,23 @@ db.pragma('foreign_keys = ON');
 
 // Initialize database schema
 export function initDatabase(): void {
-  const schemaPath = path.resolve(__dirname, '../../../database/schema.sql');
-  if (fs.existsSync(schemaPath)) {
-    const schemaSql = fs.readFileSync(schemaPath, 'utf8');
-    db.exec(schemaSql);
-  } else {
-    // Fallback embedded schema
-    db.exec(`
-      PRAGMA foreign_keys = ON;
+  try {
+    const schemaPath = path.resolve(__dirname, '../../../database/schema.sql');
+    if (fs.existsSync(schemaPath)) {
+      const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+      // Only execute if it's a valid SQLite schema (not Supabase Postgres schema)
+      if (schemaSql.includes('users') && !schemaSql.includes('public.')) {
+        db.exec(schemaSql);
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn('Note: Could not execute external schema.sql, using embedded SQLite schema:', err);
+  }
+
+  // Fallback embedded schema
+  db.exec(`
+    PRAGMA foreign_keys = ON;
 
       CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -69,5 +78,4 @@ export function initDatabase(): void {
       CREATE INDEX IF NOT EXISTS idx_scans_created_at ON scans(created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_scan_findings_scan_id ON scan_findings(scan_id);
     `);
-  }
 }

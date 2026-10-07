@@ -34,7 +34,7 @@ export const ScanResult: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await scannerService.getScanById(Number(id));
+        const response = await scannerService.getScanById(id);
         if (response.success && response.data) {
           setScan(response.data);
         } else {
@@ -57,7 +57,7 @@ export const ScanResult: React.FC = () => {
 
     try {
       setIsDeleting(true);
-      await scannerService.deleteScan(Number(id));
+      await scannerService.deleteScan(id);
       navigate('/history');
     } catch (err: any) {
       alert(err.message || 'Failed to delete scan record.');

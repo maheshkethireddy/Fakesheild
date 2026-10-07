@@ -46,6 +46,25 @@ export function validateUrlInput(input: string): { isValid: boolean; error?: str
   }
 }
 
+export function normalizeAndValidateUrl(inputUrl: string): { isValid: boolean; normalizedUrl?: string; error?: string } {
+  const res = validateUrlInput(inputUrl);
+  return {
+    isValid: res.isValid,
+    normalizedUrl: res.normalized,
+    error: res.error
+  };
+}
+
 export function validateEmailInput(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+export function validatePasswordInput(password: string): { isValid: boolean; error?: string } {
+  if (!password) {
+    return { isValid: false, error: 'Password is required.' };
+  }
+  if (password.length < 6) {
+    return { isValid: false, error: 'Password must be at least 6 characters long.' };
+  }
+  return { isValid: true };
 }

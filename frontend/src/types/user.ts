@@ -1,11 +1,11 @@
 export interface User {
-  id: number;
+  id: string;
   fullName: string;
   email: string;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export interface AuthResponse {
   user: User;
-  token: string;
+  token?: string;
 }

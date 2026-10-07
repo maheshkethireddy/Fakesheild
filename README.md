@@ -4,7 +4,8 @@
 [![Problem ID: CS6](https://img.shields.io/badge/Hackathon%20Problem-CS6-blue.svg)](https://github.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
 [![Zero Cloud Subscriptions](https://img.shields.io/badge/Cloud%20Dependencies-Zero%20(100%25%20Local)-cyan.svg)](README.md)
-[![Database: SQLite](https://img.shields.io/badge/Database-SQLite%20(better--sqlite3)-orange.svg)](README.md)
+[![Database: Supabase](https://img.shields.io/badge/Database-Supabase%20PostgreSQL-emerald.svg)](README.md)
+[![Auth: Supabase](https://img.shields.io/badge/Auth-Supabase%20Auth-blue.svg)](README.md)
 
 **FakeShield** is an indicative fake website and suspicious URL risk assessment platform developed for **Problem ID: CS6: Fake Website Detection Platform**. It analyzes observable website URL characteristics—including encryption protocol, direct IP hostnames, domain hierarchy, internationalized homographs (Punycode), non-standard ports, percent-encoding, and deceptive authentication keywords—to provide a transparent, deterministic 0–100 indicative risk score and granular security findings.
 
@@ -33,11 +34,11 @@
 
 4. **Dual User Role Architecture**:
    - **Guest**: Instant anonymous scanning directly from the landing page or scanner console without account registration. Results are generated in real time without storing user data.
-   - **Registered User**: Automated scan persistence to a local SQLite database, personal dashboard analytics, searchable scan history, full report inspection, and secure scan record deletion.
+   - **Registered User**: Automated scan persistence to Supabase PostgreSQL, personal dashboard analytics, searchable scan history, full report inspection, and secure scan record deletion.
 
-5. **100% Free & Local (Zero Paid Subscriptions)**:
-   - Built completely without Supabase, Firebase, MongoDB Atlas, paid threat intelligence APIs, or cloud auth providers.
-   - Runs entirely on your local machine using SQLite (`better-sqlite3`), Node.js, and local bcrypt password hashing.
+5. **Cloud Security & Scalability**:
+   - Connected directly to Supabase Auth and Supabase PostgreSQL with strict Row Level Security (RLS) policies.
+   - All scan records, profiles, and threat signals are isolated and encrypted in transit.
 
 6. **Safety by Design**:
    - Never visits, crawls, or executes arbitrary user-submitted URLs, fully mitigating Server-Side Request Forgery (SSRF) and malicious script execution.
@@ -49,10 +50,9 @@
 | Layer | Technologies |
 | :--- | :--- |
 | **Frontend** | React 19, TypeScript, Vite, Tailwind CSS v4, React Router Dom, Lucide React |
-| **Backend** | Node.js, Express, TypeScript, tsx, cookie-parser, cors |
-| **Database** | SQLite via `better-sqlite3` (with `PRAGMA foreign_keys = ON`) |
-| **Security & Auth** | Local bcryptjs password hashing (10 rounds), JSON Web Tokens (JWT), httpOnly cookies, security headers |
-| **Testing** | Node.js native test runner (`node:test`, `node:assert`), integration API tests |
+| **Backend & Cloud** | Supabase JavaScript Client (`@supabase/supabase-js`), Supabase Auth, Supabase PostgreSQL |
+| **Data Protection** | PostgreSQL Row Level Security (RLS), Cascade Foreign Key constraints, SSL In-Transit |
+| **Testing** | Node.js native test runner, build validation, unit & integration tests |
 
 ---
 
@@ -264,27 +264,25 @@ npm test --prefix backend
 - User registration and duplicate email rejection
 - Password hashing and login verification
 - JWT issuance and session authentication
-- Authenticated scan storage and SQLite cascade deletion
+- Authenticated scan storage and Supabase cascade deletion
 - Dashboard aggregation metrics
 
 ---
 
-## 🔌 REST API Endpoints
+## 🔌 Data & Cloud Architecture
 
 ### Authentication
-- `POST /api/auth/register` — Register a new account (`fullName`, `email`, `password`, `confirmPassword`)
-- `POST /api/auth/login` — Sign in (`email`, `password`)
-- `POST /api/auth/logout` — Clear session cookie
-- `GET /api/auth/me` — Retrieve current authenticated user profile
+- Supabase Auth email/password signup and login
+- Persistent session storage and real-time auth state synchronization
+- Automatic user profile provisioning in `public.profiles`
 
 ### Scanner
-- `POST /api/scans/analyze` — Analyze URL (Public: anonymous scans are returned without saving; authenticated scans are saved to SQLite)
-- `GET /api/scans` — List user's saved scans (Newest first)
-- `GET /api/scans/:id` — Get full scan assessment report and findings (User-scoped)
-- `DELETE /api/scans/:id` — Delete scan and cascade-delete its findings (User-scoped)
+- Client-side deterministic heuristic URL analysis
+- Authenticated scan storage in `public.scans` and `public.scan_findings`
+- Strict Row Level Security ensuring user data isolation
 
 ### Dashboard
-- `GET /api/dashboard/stats` — Aggregate metrics: `totalScans`, `lowRisk`, `mediumRisk`, `highRisk`, and recent scans.
+- Real-time aggregate telemetry (`totalScans`, `lowRisk`, `mediumRisk`, `highRisk`, and recent scans) powered by Supabase
 
 ---
 
@@ -303,9 +301,9 @@ npm test --prefix backend
    - You are automatically redirected to your personal **Dashboard**.
 4. **Dashboard & History**:
    - The dashboard displays 4 live metric counters (Total Scans, Low Risk, Medium Risk, High Risk).
-   - Click **Scanner**, enter a web URL to analyze. Notice the banner: **"Saved to History"**.
+   - Click **Scanner**, enter a web URL to analyze. Authenticated scans are safely logged to Supabase.
    - Navigate to **History** to view all saved scans. Click **View Report** to inspect individual findings.
-   - Click the **Trash** icon to delete a scan, verifying that the record and its findings are permanently purged from SQLite.
+   - Click the **Trash** icon to delete a scan, verifying that the record and its findings are permanently purged from Supabase.
 5. **Logout**:
    - Click **Logout** in the navigation bar to securely terminate the session.
 

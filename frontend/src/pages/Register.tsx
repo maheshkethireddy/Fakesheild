@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { validateEmailInput } from '../utils/validation';
 import { ShieldCheck, Lock, Mail, User, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { CyberHeroVisual } from '../components/CyberHeroVisual';
 
 export const Register: React.FC = () => {
   const { register } = useAuth();
@@ -86,7 +85,7 @@ export const Register: React.FC = () => {
           <div className="space-y-3 pt-2">
             <div className="flex items-center gap-3 text-xs text-[#94A3B8]">
               <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-              <span>Full audit history logged to local secure storage</span>
+              <span>Full audit history logged securely to Supabase</span>
             </div>
             <div className="flex items-center gap-3 text-xs text-[#94A3B8]">
               <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />

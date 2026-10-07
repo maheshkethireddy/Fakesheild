@@ -6,7 +6,7 @@ import { Calendar, Trash2, ArrowUpRight, Globe } from 'lucide-react';
 
 interface ScanCardProps {
   scan: StoredScanItem;
-  onDelete?: (id: number) => void;
+  onDelete?: (id: string | number) => void;
   isDeleting?: boolean;
 }
 

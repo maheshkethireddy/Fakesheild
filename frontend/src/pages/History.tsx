@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { scannerService } from '../services/scanner';
-import type { StoredScanItem, RiskLevel } from '../types/scanner';
+import type { StoredScanItem } from '../types/scanner';
 import { ScanCard } from '../components/ScanCard';
 import { EmptyState } from '../components/EmptyState';
 import { ErrorMessage } from '../components/ErrorMessage';
-import { History as HistoryIcon, Search, Filter, Trash2, ArrowUpDown } from 'lucide-react';
+import { History as HistoryIcon, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const HistoryPage: React.FC = () => {
@@ -13,7 +13,7 @@ export const HistoryPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterLevel, setFilterLevel] = useState<string>('ALL');
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<string | number | null>(null);
 
   const fetchScans = async () => {
     try {
@@ -36,7 +36,7 @@ export const HistoryPage: React.FC = () => {
     fetchScans();
   }, []);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string | number) => {
     if (!window.confirm('Are you sure you want to delete this scan record? This action cannot be undone.')) {
       return;
     }
@@ -70,7 +70,7 @@ export const HistoryPage: React.FC = () => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/40 border border-cyan-500/30 text-xs font-semibold text-cyan-400 mb-2">
             <HistoryIcon className="w-3.5 h-3.5" />
-            <span>SQLite Database Archive</span>
+            <span>Supabase Security Archive</span>
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">
             Scan History
@@ -126,7 +126,7 @@ export const HistoryPage: React.FC = () => {
       {/* Content Area */}
       {loading ? (
         <div className="p-16 text-center text-slate-400 font-mono text-sm">
-          Loading scan records from database...
+          Loading scan records from Supabase...
         </div>
       ) : scans.length === 0 ? (
         <EmptyState

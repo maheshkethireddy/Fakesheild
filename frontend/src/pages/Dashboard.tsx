@@ -206,7 +206,7 @@ export const Dashboard: React.FC = () => {
               Recent Scans
             </h2>
             <p className="text-xs text-[#94A3B8]">
-              Latest assessed web links stored in your security log.
+              Your latest website risk assessments stored securely in Supabase.
             </p>
           </div>
 
