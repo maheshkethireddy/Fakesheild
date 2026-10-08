@@ -130,6 +130,25 @@ CREATE POLICY "Users can insert findings for their own scans"
         )
     );
 
+DROP POLICY IF EXISTS "Users can update findings for their own scans" ON public.scan_findings;
+CREATE POLICY "Users can update findings for their own scans"
+    ON public.scan_findings FOR UPDATE
+    TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.scans
+            WHERE scans.id = scan_findings.scan_id
+              AND scans.user_id = (SELECT auth.uid())
+        )
+    )
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM public.scans
+            WHERE scans.id = scan_findings.scan_id
+              AND scans.user_id = (SELECT auth.uid())
+        )
+    );
+
 DROP POLICY IF EXISTS "Users can delete findings for their own scans" ON public.scan_findings;
 CREATE POLICY "Users can delete findings for their own scans"
     ON public.scan_findings FOR DELETE
@@ -141,6 +160,7 @@ CREATE POLICY "Users can delete findings for their own scans"
               AND scans.user_id = (SELECT auth.uid())
         )
     );
+
 
 -- ====================================================
 -- AUTOMATIC PROFILE CREATION FUNCTION & OPTIONAL TRIGGER

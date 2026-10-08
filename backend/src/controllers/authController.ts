@@ -16,7 +16,7 @@ export class AuthController {
   static async register(req: Request, res: Response): Promise<void> {
     try {
       const { fullName, email, password, confirmPassword } = req.body;
-      const { user, token } = AuthService.register(fullName, email, password, confirmPassword);
+      const { user, token } = await AuthService.register(fullName, email, password, confirmPassword);
 
       setAuthCookie(res, token);
 
@@ -39,7 +39,7 @@ export class AuthController {
   static async login(req: Request, res: Response): Promise<void> {
     try {
       const { email, password } = req.body;
-      const { user, token } = AuthService.login(email, password);
+      const { user, token } = await AuthService.login(email, password);
 
       setAuthCookie(res, token);
 
@@ -82,7 +82,7 @@ export class AuthController {
         return;
       }
 
-      const user = AuthService.getUserById(req.user.userId);
+      const user = await AuthService.getUserById(req.user.userId);
       if (!user) {
         res.status(404).json({
           success: false,

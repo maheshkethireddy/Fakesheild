@@ -10,7 +10,7 @@ import { errorHandler } from './middleware/errorMiddleware';
 
 dotenv.config();
 
-// Initialize Database
+// Initialize Database (Supabase PostgreSQL, no SQLite)
 initDatabase();
 
 const app = express();
@@ -41,7 +41,7 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(null, true); // Permissive for local development
+      callback(null, true); // Permissive for preview/local development
     }
   },
   credentials: true,
@@ -60,6 +60,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
     status: 'ok',
     service: 'FakeShield API',
     tagline: 'Analyze Before You Trust.',
+    database: 'Supabase PostgreSQL',
     timestamp: new Date().toISOString()
   });
 });
@@ -69,7 +70,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/scans', scanRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
-// 404 Route Handler
+// 404 Route Handler for undefined API routes
 app.use('/api/*', (_req: Request, res: Response) => {
   res.status(404).json({
     success: false,
@@ -80,8 +81,13 @@ app.use('/api/*', (_req: Request, res: Response) => {
 // Centralized Error Handler
 app.use(errorHandler);
 
-// Start server if not imported for testing
-if (process.env.NODE_ENV !== 'test') {
+// Start standalone HTTP listener if run directly (not imported as a module/serverless handler)
+const isDirectRun = Boolean(
+  require.main === module ||
+  (process.argv[1] && (process.argv[1].endsWith('server.ts') || process.argv[1].endsWith('server.js')))
+);
+
+if (isDirectRun && process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`========================================`);
     console.log(`🛡️  FakeShield Backend API is running!`);
@@ -91,5 +97,6 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`========================================`);
   });
 }
+
 
 export default app;

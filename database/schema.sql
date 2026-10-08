@@ -1,6 +1,6 @@
--- FakeShield Database Schema
--- Problem ID: CS6 - Fake Website Detection Platform
--- Local SQLite Database Schema
+-- FakeShield Database Schema (LEGACY ARCHIVE)
+-- NOTICE: Replaced by Supabase PostgreSQL schema in production.
+-- Active production schema and RLS policies are located at: supabase/schema.sql
 
 PRAGMA foreign_keys = ON;
 

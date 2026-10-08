@@ -1,5 +1,5 @@
 export interface User {
-  id: number;
+  id: string;
   fullName: string;
   email: string;
   passwordHash?: string;
@@ -7,14 +7,14 @@ export interface User {
 }
 
 export interface UserResponse {
-  id: number;
+  id: string;
   fullName: string;
   email: string;
   createdAt: string;
 }
 
 export interface AuthTokenPayload {
-  userId: number;
+  userId: string;
   email: string;
   fullName: string;
 }
@@ -23,6 +23,7 @@ declare global {
   namespace Express {
     interface Request {
       user?: AuthTokenPayload;
+      token?: string;
     }
   }
 }

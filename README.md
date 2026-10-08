@@ -101,67 +101,59 @@ FakeShield/
 │   │   ├── routes/             # authRoutes, scanRoutes, dashboardRoutes
 │   │   ├── services/           # urlAnalyzer.ts, authService.ts
 │   │   ├── middleware/         # authMiddleware.ts, errorMiddleware.ts
-│   │   ├── database/           # db.ts (SQLite connection & schema auto-init)
+│   │   ├── database/           # db.ts (Supabase PostgreSQL client & RLS helper)
 │   │   ├── utils/              # validation.ts
 │   │   ├── types/              # scanner.ts, user.ts
-│   │   └── server.ts           # Express server setup & security headers
+│   │   └── server.ts           # Express server setup, security headers & Vercel serverless support
 │   ├── tests/                  # urlAnalyzer.test.ts, api.test.ts, runTests.ts
 │   ├── package.json
 │   ├── tsconfig.json
 │   └── .env.example
-├── database/
-│   ├── schema.sql              # Clean SQLite DDL with FK constraints & indexes
-│   └── fakeshield.db           # Generated local SQLite database file
+├── supabase/
+│   └── schema.sql              # Supabase PostgreSQL schema with RLS security policies
 ├── package.json                # Root orchestration with concurrently
 └── README.md                   # Full documentation
 ```
 
 ---
 
-## 🗄️ Database Schema (`database/schema.sql`)
+## 🗄️ Database Architecture (`supabase/schema.sql`)
+
+FakeShield utilizes **Supabase PostgreSQL** with strict **Row Level Security (RLS)** in production:
 
 ```sql
-PRAGMA foreign_keys = ON;
-
--- Users Table
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    full_name TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE COLLATE NOCASE,
-    password_hash TEXT NOT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+-- Profiles Table
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    full_name TEXT,
+    email TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Scans Table
-CREATE TABLE IF NOT EXISTS scans (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NULL,
+CREATE TABLE IF NOT EXISTS public.scans (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     url TEXT NOT NULL,
-    domain TEXT NOT NULL,
-    risk_score INTEGER NOT NULL,
-    risk_level TEXT NOT NULL CHECK(risk_level IN ('LOW', 'MEDIUM', 'HIGH')),
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    domain TEXT,
+    risk_score INTEGER NOT NULL CHECK (risk_score >= 0 AND risk_score <= 100),
+    risk_level TEXT NOT NULL CHECK (risk_level IN ('LOW', 'MEDIUM', 'HIGH')),
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Scan Findings Table
-CREATE TABLE IF NOT EXISTS scan_findings (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    scan_id INTEGER NOT NULL,
+CREATE TABLE IF NOT EXISTS public.scan_findings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    scan_id UUID NOT NULL REFERENCES public.scans(id) ON DELETE CASCADE,
     category TEXT NOT NULL,
     title TEXT NOT NULL,
-    severity TEXT NOT NULL CHECK(severity IN ('SAFE', 'INFO', 'WARNING', 'HIGH')),
+    severity TEXT NOT NULL CHECK (severity IN ('SAFE', 'INFO', 'WARNING', 'HIGH')),
     description TEXT NOT NULL,
-    risk_points INTEGER NOT NULL DEFAULT 0,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (scan_id) REFERENCES scans(id) ON DELETE CASCADE
+    risk_points INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Indexes
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_scans_user_id ON scans(user_id);
-CREATE INDEX IF NOT EXISTS idx_scans_created_at ON scans(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_scan_findings_scan_id ON scan_findings(scan_id);
+-- Row Level Security (RLS): Authenticated users can only view, insert, update, and delete their own records
 ```
 
 ---

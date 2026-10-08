@@ -1,42 +1,50 @@
 import { Request, Response } from 'express';
-import { db } from '../database/db';
+import { supabase, getAuthenticatedSupabaseClient } from '../database/db';
 
 export class DashboardController {
   static async getStats(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user!.userId;
+      const client = req.token ? getAuthenticatedSupabaseClient(req.token) : supabase;
 
-      const totalRow = db.prepare(`
-        SELECT COUNT(*) as count FROM scans WHERE user_id = ?
-      `).get(userId) as any;
+      const { data: scans, error } = await client
+        .from('scans')
+        .select('id, url, domain, risk_score, risk_level, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-      const lowRow = db.prepare(`
-        SELECT COUNT(*) as count FROM scans WHERE user_id = ? AND risk_level = 'LOW'
-      `).get(userId) as any;
+      if (error) {
+        throw error;
+      }
 
-      const mediumRow = db.prepare(`
-        SELECT COUNT(*) as count FROM scans WHERE user_id = ? AND risk_level = 'MEDIUM'
-      `).get(userId) as any;
+      const allScans = scans || [];
+      const totalScans = allScans.length;
+      let lowRisk = 0;
+      let mediumRisk = 0;
+      let highRisk = 0;
 
-      const highRow = db.prepare(`
-        SELECT COUNT(*) as count FROM scans WHERE user_id = ? AND risk_level = 'HIGH'
-      `).get(userId) as any;
+      for (const s of allScans) {
+        if (s.risk_level === 'LOW') lowRisk++;
+        else if (s.risk_level === 'MEDIUM') mediumRisk++;
+        else if (s.risk_level === 'HIGH') highRisk++;
+      }
 
-      const recentScans = db.prepare(`
-        SELECT id, url, domain, risk_score as riskScore, risk_level as riskLevel, created_at as createdAt
-        FROM scans
-        WHERE user_id = ?
-        ORDER BY created_at DESC
-        LIMIT 5
-      `).all(userId);
+      const recentScans = allScans.slice(0, 5).map((s: any) => ({
+        id: s.id,
+        url: s.url,
+        domain: s.domain,
+        riskScore: s.risk_score,
+        riskLevel: s.risk_level,
+        createdAt: s.created_at
+      }));
 
       res.status(200).json({
         success: true,
         data: {
-          totalScans: totalRow?.count || 0,
-          lowRisk: lowRow?.count || 0,
-          mediumRisk: mediumRow?.count || 0,
-          highRisk: highRow?.count || 0,
+          totalScans,
+          lowRisk,
+          mediumRisk,
+          highRisk,
           recentScans
         }
       });

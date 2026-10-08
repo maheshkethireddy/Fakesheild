@@ -1,12 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const supabaseUrl =
+  import.meta.env.VITE_SUPABASE_URL ||
+  'https://osugjnkxuoofblqygctf.supabase.co';
 
-if (!supabaseUrl || !supabasePublishableKey) {
-  throw new Error(
-    'Supabase configuration error: Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY environment variables. ' +
-    'Please ensure these values are properly defined in your frontend environment (.env file).'
+const supabasePublishableKey =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  'sb_publishable_DmLFwvlX9tdcBeG98rbnrA_6Big-xDx';
+
+if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) {
+  console.warn(
+    '⚠️ Supabase configuration notice: Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY environment variables. ' +
+    'Please ensure these values are properly defined in your environment (.env file or Vercel environment variables).'
   );
 }
 
@@ -27,7 +32,7 @@ export const supabase = createClient(
  */
 export async function testSupabaseConnection(): Promise<{ ok: boolean; message: string; error?: any }> {
   try {
-    const { data, error } = await supabase.auth.getSession();
+    const { error } = await supabase.auth.getSession();
     if (error) {
       return { ok: false, message: `Supabase auth connection check failed: ${error.message}`, error };
     }

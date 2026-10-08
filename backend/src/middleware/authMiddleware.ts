@@ -16,7 +16,7 @@ export function extractToken(req: Request): string | null {
   return null;
 }
 
-export function requireAuth(req: Request, res: Response, next: NextFunction): void {
+export async function requireAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
   const token = extractToken(req);
 
   if (!token) {
@@ -27,7 +27,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
     return;
   }
 
-  const payload = AuthService.verifyToken(token);
+  const payload = await AuthService.verifyToken(token);
   if (!payload) {
     res.status(401).json({
       success: false,
@@ -37,16 +37,18 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   }
 
   req.user = payload;
+  req.token = token;
   next();
 }
 
-export function optionalAuth(req: Request, _res: Response, next: NextFunction): void {
+export async function optionalAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const token = extractToken(req);
 
   if (token) {
-    const payload = AuthService.verifyToken(token);
+    const payload = await AuthService.verifyToken(token);
     if (payload) {
       req.user = payload;
+      req.token = token;
     }
   }
 

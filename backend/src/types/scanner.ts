@@ -3,8 +3,8 @@ export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 export type FindingSeverity = 'SAFE' | 'INFO' | 'WARNING' | 'HIGH';
 
 export interface ScanFinding {
-  id?: number;
-  scanId?: number;
+  id?: string | number;
+  scanId?: string | number;
   category: string;
   title: string;
   severity: FindingSeverity;
@@ -13,6 +13,7 @@ export interface ScanFinding {
 }
 
 export interface AnalysisResult {
+  id?: string | number | null;
   url: string;
   domain: string;
   riskScore: number;
@@ -24,14 +25,15 @@ export interface AnalysisResult {
 }
 
 export interface StoredScan {
-  id: number;
-  userId?: number | null;
+  id: string | number;
+  userId?: string | number | null;
   url: string;
   domain: string;
   riskScore: number;
   riskLevel: RiskLevel;
   createdAt: string;
   findings?: ScanFinding[];
+  findingsCount?: number;
 }
 
 export interface DashboardStats {
@@ -39,4 +41,5 @@ export interface DashboardStats {
   lowRisk: number;
   mediumRisk: number;
   highRisk: number;
+  recentScans?: StoredScan[];
 }
